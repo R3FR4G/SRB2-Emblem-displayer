@@ -10,19 +10,14 @@ namespace CountEmblems
     class Program
     {
         // Previous amount of emblems
-        static int previousTotal;
+        static string previousTotal;
         // Previous error in the loop
         static string previousError;
         // 4 (version check) + 4 (playtime) + 1 (modified) + 1035 (maps visited)
-        const int SKIPPED_BYTES = 1044;
-        const int MAXEMBLEMS = 512;
-        const int MAXEXTRAEMBLEMS = 16;
-        const int EXIT_TIME = 10000;
-        const int NO_PREVIOUS_TOTAL = -1;
+        const string NO_PREVIOUS_TOTAL = "";
         const string PREVIOUS_INI_NAME = "previous.ini";
         const string CURRENT_INI_NAME = "current.ini";
         static string previousFileName;
-        static string previousOutputName;
         static Form MainForm;
         static Form IOForm;
         static Form EditForm;
@@ -30,7 +25,6 @@ namespace CountEmblems
         static Button button2FontColor;
         static Button button2BackgroundColor;
         static TextBox gamedataBox;
-        static TextBox outputBox;
         static Color previousFontColor;
         static Color previousBackColor;
         static Font previousFont;
@@ -46,19 +40,6 @@ namespace CountEmblems
                 if (gamedataBox != null)
                 {
                     gamedataBox.Text = value;
-                }
-            }
-        }
-        static string outputNameMember;
-        static string outputName
-        {
-            get { return outputNameMember; }
-            set
-            {
-                outputNameMember = value;
-                if (outputBox != null)
-                {
-                    outputBox.Text = value;
                 }
             }
         }
@@ -146,41 +127,18 @@ namespace CountEmblems
             bytes = bytes.Skip(1).ToArray();
             return value;
         }
-        static int CountEmblems(ref byte[] bytes, int max_emblems)
+        static void Analyze_file(string fileName)
         {
-            int result = 0;
-            for (int i = 0; i < max_emblems;)
-            {
-                // Function directly copied from SRB2 source code, where the gamedata handling happens
-                int j;
-                byte rtemp = ReadByte(ref bytes);
-                for (j = 0; j < 8 && j + i < max_emblems; ++j)
-                    result += ((rtemp >> j) & 1);
-                i += j;
-            }
-            return result;
-        }
-        static void Analyze_file(string fileName, string outputName)
-        {
-            byte[] bytes;
-            int total = previousTotal;
+            string text;
+            string total = previousTotal;
             if (fileName != null && fileName != "")
             {
                 try
                 {
-                    bytes = File.ReadAllBytes(fileName);
-                    // We don't want to read empty/corrupted gamedata
-                    if (bytes.Length < SKIPPED_BYTES + MAXEMBLEMS + MAXEXTRAEMBLEMS && previousError != "short")
+                    text = File.ReadAllText(fileName);
+                    if(text != "")
                     {
-                        //Console.WriteLine("The gamedata is too short.");
-                        previousError = "short";
-                    }
-                    else
-                    {
-                        bytes = bytes.Skip(SKIPPED_BYTES).ToArray();
-                        int emblems = CountEmblems(ref bytes, MAXEMBLEMS);
-                        int extraEmblems = CountEmblems(ref bytes, MAXEXTRAEMBLEMS);
-                        total = emblems + extraEmblems;
+                        total = text;
                     }
                 }
                 catch (FileNotFoundException e)
@@ -201,7 +159,7 @@ namespace CountEmblems
 
             if (total == NO_PREVIOUS_TOTAL)
             {
-                total = 0;
+                total = "";
             }
             if (total != previousTotal)
             {
@@ -211,13 +169,8 @@ namespace CountEmblems
                     {
                         emblemLabel.BeginInvoke(new MethodInvoker(delegate
                         {
-                            emblemLabel.Text = total.ToString();
+                            emblemLabel.Text = total;
                         }));
-                    }
-
-                    if (outputName != null && outputName != "")
-                    {
-                        File.WriteAllText(outputName, total.ToString());
                     }
 
                     previousTotal = total;
@@ -242,7 +195,8 @@ namespace CountEmblems
             form.StartPosition = FormStartPosition.CenterScreen;
             form.BackColor = backcolor;
             form.Text = windowTitle;
-            form.Icon = new Icon("icon.ico");
+            //removed icon atm because i'm too lazy to do an other one lol
+            //form.Icon = new Icon("icon.ico");
             form.ShowIcon = true;
             return form;
         }
@@ -330,7 +284,6 @@ namespace CountEmblems
         static void MenuIO_Options(object sender, EventArgs e)
         {
             previousFileName = fileName;
-            previousOutputName = outputName;
             Thread.CurrentThread.IsBackground = true;
             IOForm.ShowDialog();
         }
@@ -394,7 +347,7 @@ namespace CountEmblems
                 string size = width + "," + height;
 
                 FontConverter fc = new FontConverter();
-                string[] contents = { fileName, outputName, fontColorS, backColorS, fc.ConvertToString(currentFont), size };
+                string[] contents = { fileName, fontColorS, backColorS, fc.ConvertToString(currentFont), size };
                 File.WriteAllLines(file, contents);
             }
             catch
@@ -425,18 +378,16 @@ namespace CountEmblems
             {
                 string[] contents = File.ReadAllLines(file);
                 fileName = contents[0];
-                outputName = contents[1];
                 gamedataBox.Text = fileName;
-                outputBox.Text = outputName;
 
-                string[] fColor = contents[2].Split(',');
+                string[] fColor = contents[1].Split(',');
                 int fA = Int32.Parse(fColor[0]);
                 int fR = Int32.Parse(fColor[1]);
                 int fG = Int32.Parse(fColor[2]);
                 int fB = Int32.Parse(fColor[3]);
                 fontColor = Color.FromArgb(fA, fR, fG, fB);
 
-                string[] bColor = contents[3].Split(',');
+                string[] bColor = contents[2].Split(',');
                 int bA = Int32.Parse(bColor[0]);
                 int bR = Int32.Parse(bColor[1]);
                 int bG = Int32.Parse(bColor[2]);
@@ -444,9 +395,9 @@ namespace CountEmblems
                 backColor = Color.FromArgb(bA, bR, bG, bB);
 
                 FontConverter fc = new FontConverter();
-                currentFont = fc.ConvertFromString(contents[4]) as Font;
+                currentFont = fc.ConvertFromString(contents[3]) as Font;
 
-                string[] size = contents[5].Split(',');
+                string[] size = contents[4].Split(',');
                 windowWidth = Int32.Parse(size[0]);
                 windowHeight = Int32.Parse(size[1]);
             }
@@ -476,7 +427,7 @@ namespace CountEmblems
         {
             using (OpenFileDialog openFileDialog2 = new OpenFileDialog())
             {
-                openFileDialog2.Filter = "dat files (*.dat)|*.dat;";
+                openFileDialog2.Filter = "All files (*.*)|*.*";
                 openFileDialog2.RestoreDirectory = true;
                 openFileDialog2.ShowDialog();
 
@@ -488,35 +439,15 @@ namespace CountEmblems
                 }
             }
         }
-        static void BrowseOutput(object sender, EventArgs e)
-        {
-            using (SaveFileDialog saveFileDialog2 = new SaveFileDialog())
-            {
-                saveFileDialog2.Filter = "txt files (*.txt)|*.txt;";
-                saveFileDialog2.RestoreDirectory = true;
-                saveFileDialog2.ShowDialog();
-
-                if (saveFileDialog2.FileName != "")
-                {
-                    outputName = saveFileDialog2.FileName;
-                    Console.WriteLine("Output file : " + outputName);
-                    outputBox.Text = outputName;
-                }
-            }
-        }
         static void OkIO(object sender, EventArgs e)
         {
             fileName = gamedataBox.Text;
-            outputName = outputBox.Text;
             Console.WriteLine("Gamedata : " + fileName);
-            Console.WriteLine("Output : " + outputName);
         }
         static void CancelIO(object sender, EventArgs e)
         {
             fileName = previousFileName;
-            outputName = previousOutputName;
             Console.WriteLine("Gamedata : " + fileName);
-            Console.WriteLine("Output : " + outputName);
         }
 
         static void fontColorDialog(object sender, EventArgs e)
@@ -599,7 +530,6 @@ namespace CountEmblems
             EventHandler Edit_L = new EventHandler(MenuEdit_L);
 
             EventHandler gamedataButtonHandler = new EventHandler(BrowseGamedata);
-            EventHandler outputButtonHandler = new EventHandler(BrowseOutput);
 
             EventHandler OkIOHandler = new EventHandler(OkIO);
             EventHandler CancelIOHandler = new EventHandler(CancelIO);
@@ -612,7 +542,7 @@ namespace CountEmblems
             EventHandler CancelEditHandler = new EventHandler(CancelEdit);
 
             ContextMenu menu = new ContextMenu();
-            menu.MenuItems.Add("Input/Output options", IO_Options);
+            menu.MenuItems.Add("Text Input file", IO_Options);
             menu.MenuItems.Add("-");
             menu.MenuItems.Add("Save layout", Save_L);
             menu.MenuItems.Add("Save layout as...", SaveAs_L);
@@ -628,30 +558,21 @@ namespace CountEmblems
             {
                 // We want to change the number in the output file on the first loop
                 previousTotal = NO_PREVIOUS_TOTAL;
-                Console.WriteLine("Game data file: " + fileName);
-                Console.WriteLine("Output file: " + outputName);
+                Console.WriteLine("Input file: " + fileName);
                 while (true)
                 {
-                    Analyze_file(fileName, outputName);
+                    Analyze_file(fileName);
                     Thread.Sleep(100);
                 }
             }).Start();
 
-            AddConstantLabel("Game data's path:", new Point(10, 10), IOForm);
+            AddConstantLabel("Input path:", new Point(10, 10), IOForm);
             gamedataBox = new TextBox();
             gamedataBox.Text = fileName;
             gamedataBox.Location = new Point(10, 30);
             gamedataBox.Size = new Size(180, 20);
             IOForm.Controls.Add(gamedataBox);
             Button gamedataButton = MakeButton("Browse", new Point(200, 30), gamedataButtonHandler, IOForm);
-
-            AddConstantLabel("Output file's path:", new Point(10, 60), IOForm);
-            outputBox = new TextBox();
-            outputBox.Text = outputName;
-            outputBox.Location = new Point(10, 80);
-            outputBox.Size = new Size(180, 20);
-            IOForm.Controls.Add(outputBox);
-            Button outputButton = MakeButton("Browse", new Point(200, 80), outputButtonHandler, IOForm);
 
             Button buttonOkIO = MakeButton("OK", new Point(110, 140), OkIOHandler, IOForm);
             buttonOkIO.DialogResult = DialogResult.OK;

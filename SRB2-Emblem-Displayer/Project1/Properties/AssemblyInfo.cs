@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // Les informations générales relatives à un assembly dépendent de 
 // l'ensemble d'attributs suivant. Changez les valeurs de ces attributs pour modifier les informations
 // associées à un assembly.
-[assembly: AssemblyTitle("SRB2 Emblem Displayer")]
-[assembly: AssemblyDescription("A program that outputs the emblem count to a file")]
+[assembly: AssemblyTitle("Text File Displayer")]
+[assembly: AssemblyDescription("A program that displays the content of a text file with a customizable look")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
