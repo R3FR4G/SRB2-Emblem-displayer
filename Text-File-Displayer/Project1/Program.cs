@@ -49,6 +49,7 @@ namespace CountEmblems
         static ComboBox outlineMenu;
         static int previousIndex;
         static NumericUpDown thicknessUpDown;
+        static NumericUpDown angleUpDown;
         static System.Windows.Forms.Button buttonOutlineColor;
         static ComboBox gradientMenu;
         enum GradientOption
@@ -211,6 +212,25 @@ namespace CountEmblems
                     if (outlines.Count > 0 && outlineMenu.SelectedIndex >= 0)
                     {
                         outlines[outlineMenu.SelectedIndex].Thickness = value;
+                    }
+                }
+                UpdateText();
+            }
+        }
+
+        static int customAngleMember;
+        static int customAngle
+        {
+            get { return customAngleMember; }
+            set
+            {
+                customAngleMember = value;
+                if (angleUpDown != null)
+                {
+                    angleUpDown.Value = value;
+                    if (currentGradientOption == GradientOption.Custom)
+                    {
+                        //do the thing
                     }
                 }
                 UpdateText();
@@ -813,9 +833,20 @@ namespace CountEmblems
             outlineThickness = (int)thicknessUpDown.Value;
             UpdateText();
         }
+        static void angleChanged(object sender, EventArgs e)
+        {
+            customAngle = (int)angleUpDown.Value;
+            //unfinished i think
+        }
         static void updateGradientSettings()
         {
             currentGradientOption = (GradientOption)gradientMenu.SelectedIndex;
+            angleUpDown.Enabled = false;
+            if (currentGradientOption == GradientOption.Custom)
+            {
+                angleUpDown.Enabled = true;
+                //unfinished i think
+            }
             UpdateText();
         }
         [STAThread]
@@ -827,7 +858,7 @@ namespace CountEmblems
             MainForm.FormBorderStyle = FormBorderStyle.Sizable;
             MainForm.SizeGripStyle = SizeGripStyle.Hide;
             IOForm = MakeForm(new System.Drawing.Size(295, 175), System.Drawing.Color.FromArgb(240, 240, 240), "I/O Options");
-            EditForm = MakeForm(new System.Drawing.Size(245, 300), System.Drawing.Color.FromArgb(240, 240, 240), "Edit Layout");
+            EditForm = MakeForm(new System.Drawing.Size(245, 320), System.Drawing.Color.FromArgb(240, 240, 240), "Edit Layout");
             MainForm.FormClosing += FormExit;
             MainForm.ResizeEnd += ResizeEnd;
 
@@ -851,6 +882,8 @@ namespace CountEmblems
             EventHandler newOutlineHandler = new EventHandler(newOutline);
             EventHandler delOutlineHandler = new EventHandler(delOutline);
             EventHandler thicknessChangedHandler = new EventHandler(thicknessChanged);
+
+            EventHandler angleChangedHandler = new EventHandler(angleChanged);
 
             EventHandler OkEditHandler = new EventHandler(OkEdit);
             EventHandler CancelEditHandler = new EventHandler(CancelEdit);
@@ -920,11 +953,11 @@ namespace CountEmblems
 
             System.Windows.Forms.Button buttonFont = MakeButton("...", new System.Drawing.Point(155, 50), fontHandler, EditForm);
 
-            System.Windows.Forms.Button buttonOkEdit = MakeButton("Ok", new System.Drawing.Point(65, 265), OkEditHandler, EditForm);
+            System.Windows.Forms.Button buttonOkEdit = MakeButton("Ok", new System.Drawing.Point(65, 285), OkEditHandler, EditForm);
             buttonOkEdit.DialogResult = DialogResult.OK;
             EditForm.AcceptButton = buttonOkEdit;
 
-            System.Windows.Forms.Button buttonCancelEdit = MakeButton("Cancel", new System.Drawing.Point(155, 265), CancelEditHandler, EditForm);
+            System.Windows.Forms.Button buttonCancelEdit = MakeButton("Cancel", new System.Drawing.Point(155, 285), CancelEditHandler, EditForm);
             buttonCancelEdit.DialogResult = DialogResult.Cancel;
             EditForm.CancelButton = buttonCancelEdit;
 
@@ -972,7 +1005,7 @@ namespace CountEmblems
             EditForm.Controls.Add(separator);
             separator.Enabled = false;
 
-            AddConstantLabel("Font fill gradient", new System.Drawing.Point(10, 180), EditForm);
+            AddConstantLabel("Font fill gradient", new System.Drawing.Point(10, 183), EditForm);
             gradientMenu = new ComboBox();
             gradientMenu.DropDownStyle = ComboBoxStyle.DropDownList;
             gradientMenu.Items.Insert((int)GradientOption.None, "None");
@@ -985,10 +1018,18 @@ namespace CountEmblems
             EditForm.Controls.Add(gradientMenu);
 
             System.Windows.Forms.Button buttonFontColor2 = MakeButton("...", new System.Drawing.Point(155, 205), (o, e) => { fontColorDialog(fontColorId.FontColor2, fontColor2); }, EditForm);
-            AddConstantLabel("End Color:", new System.Drawing.Point(10, 210), EditForm);
+            AddConstantLabel("Gradient End Color:", new System.Drawing.Point(10, 210), EditForm);
             button2FontColor2 = MakeButton("", new System.Drawing.Point(130, 205), null, EditForm);
             button2FontColor2.Size = new System.Drawing.Size(23, 23);
             button2FontColor2.Enabled = false;
+
+            AddConstantLabel("Custom Angle:", new System.Drawing.Point(110, 238), EditForm);
+            angleUpDown = new NumericUpDown();
+            angleUpDown.Location = new System.Drawing.Point(190, 235);
+            angleUpDown.Size = new System.Drawing.Size(40, 0);
+            angleUpDown.ValueChanged += angleChangedHandler;
+            angleUpDown.Enabled = false;
+            EditForm.Controls.Add(angleUpDown);
 
             Thread.CurrentThread.IsBackground = true;
             //MainForm.Controls.Add(emblemLabel);
