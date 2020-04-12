@@ -137,8 +137,15 @@ namespace CountEmblems
                 }
                 catch (FileNotFoundException e)
                 {
+                    if (emblemLabel.IsHandleCreated == true)
+                    {
+                        emblemLabel.BeginInvoke(new MethodInvoker(delegate
+                        {
+                            emblemLabel.Text = "No text\nto display";
+                        }));
+                    }
                     string errorName = e.GetType().Name;
-                    // We don't want error spam for every loop
+                    // We don't want error spam for every 
                     if (previousError != errorName)
                     {
                         previousError = errorName;
@@ -499,7 +506,7 @@ namespace CountEmblems
         [STAThread]
         static void Main()
         {
-            MainForm = MakeForm(new Size(250, 200), Color.FromArgb(0, 0, 0), "SRB2 Emblem Display");
+            MainForm = MakeForm(new Size(250, 200), Color.FromArgb(0, 0, 0), "Text File Display");
             windowWidth = 250;
             windowHeight = 200;
             MainForm.FormBorderStyle = FormBorderStyle.Sizable;
