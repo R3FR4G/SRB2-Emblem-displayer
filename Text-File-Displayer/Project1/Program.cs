@@ -217,7 +217,7 @@ namespace CountEmblems
                 UpdateText();
             }
         }
-
+        static int previousCustomAngle;
         static int customAngleMember;
         static int customAngle
         {
@@ -558,6 +558,7 @@ namespace CountEmblems
             previousFontColor = fontColor;
             previousFontColor2 = fontColor2;
             previousGradientOption = currentGradientOption;
+            previousCustomAngle = customAngle;
             button2FontColor.BackColor = fontColor;
             previousBackColor = backColor;
             button2BackgroundColor.BackColor = backColor;
@@ -652,6 +653,7 @@ namespace CountEmblems
             fontColor = previousFontColor;
             fontColor2 = previousFontColor2;
             currentGradientOption = previousGradientOption;
+            customAngle = previousCustomAngle;
             backColor = previousBackColor;
             currentFont = previousFont;
             outlines.Clear();
@@ -726,10 +728,10 @@ namespace CountEmblems
                         case GradientOption.Custom:
                             // just a temp brush
                             fillBrush = new System.Drawing.Drawing2D.LinearGradientBrush(
-                                new System.Drawing.Point((int)rectangle.Left, 0),
-                                new System.Drawing.Point((int)rectangle.Right, 0),
+                                rectangle,
                                 fontColor,
-                                fontColor);
+                                fontColor2,
+                                customAngle);
                             break;
                     }
 
