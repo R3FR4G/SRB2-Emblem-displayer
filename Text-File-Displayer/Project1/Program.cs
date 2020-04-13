@@ -49,6 +49,7 @@ namespace CountEmblems
         static ComboBox outlineMenu;
         static int previousIndex;
         static NumericUpDown thicknessUpDown;
+        static Button buttonFontColor2;
         static NumericUpDown angleUpDown;
         static System.Windows.Forms.Button buttonOutlineColor;
         static ComboBox gradientMenu;
@@ -569,6 +570,7 @@ namespace CountEmblems
                 previousOutlines.Add(new Outline { Color = outline.Color, Thickness = outline.Thickness });
             }
             resetOutlineMenu();
+            updateGradientSettings();
             EditForm.ShowDialog();
         }
         static void AddConstantLabel(string text, System.Drawing.Point location, Form form)
@@ -843,7 +845,12 @@ namespace CountEmblems
         static void updateGradientSettings()
         {
             currentGradientOption = (GradientOption)gradientMenu.SelectedIndex;
+            buttonFontColor2.Enabled = false;
             angleUpDown.Enabled = false;
+            if (currentGradientOption != GradientOption.None)
+            {
+                buttonFontColor2.Enabled = true;
+            }
             if (currentGradientOption == GradientOption.Custom)
             {
                 angleUpDown.Enabled = true;
@@ -964,7 +971,6 @@ namespace CountEmblems
             EditForm.CancelButton = buttonCancelEdit;
 
             backColor = MainForm.BackColor;
-            //fontColor = emblemLabel.ForeColor;
 
             AddConstantLabel("Outlines:", new System.Drawing.Point(10, 90), EditForm);
             addOutlineButton = MakeButton("Add", new System.Drawing.Point(10, 110), newOutlineHandler, EditForm);
@@ -1019,7 +1025,7 @@ namespace CountEmblems
             gradientMenu.SelectedValueChanged += (o, e) => { updateGradientSettings(); };
             EditForm.Controls.Add(gradientMenu);
 
-            System.Windows.Forms.Button buttonFontColor2 = MakeButton("...", new System.Drawing.Point(155, 205), (o, e) => { fontColorDialog(fontColorId.FontColor2, fontColor2); }, EditForm);
+            buttonFontColor2 = MakeButton("...", new System.Drawing.Point(155, 205), (o, e) => { fontColorDialog(fontColorId.FontColor2, fontColor2); }, EditForm);
             AddConstantLabel("Gradient End Color:", new System.Drawing.Point(10, 210), EditForm);
             button2FontColor2 = MakeButton("", new System.Drawing.Point(130, 205), null, EditForm);
             button2FontColor2.Size = new System.Drawing.Size(23, 23);
@@ -1032,6 +1038,11 @@ namespace CountEmblems
             angleUpDown.ValueChanged += angleChangedHandler;
             angleUpDown.Enabled = false;
             EditForm.Controls.Add(angleUpDown);
+
+
+            // Just some default values before loading
+            fontColor = System.Drawing.Color.White;
+            fontColor2 = System.Drawing.Color.White;
 
             Thread.CurrentThread.IsBackground = true;
             //MainForm.Controls.Add(emblemLabel);
