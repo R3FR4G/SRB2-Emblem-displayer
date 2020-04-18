@@ -340,8 +340,12 @@ namespace CountEmblems
             form.StartPosition = FormStartPosition.CenterScreen;
             form.BackColor = backcolor;
             form.Text = windowTitle;
-            //removed icon atm because i'm too lazy to do an other one lol
-            //form.Icon = new Icon("icon.ico");
+            try
+            {
+                form.Icon = new Icon("icon.ico");
+                form.ShowIcon = true;
+            }
+            catch { }
             form.ShowIcon = true;
             return form;
         }
